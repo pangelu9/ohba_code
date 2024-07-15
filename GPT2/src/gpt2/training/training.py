@@ -100,8 +100,8 @@ class Trainer(object):
             optimizer.load_state_dict(ckpt['optimizer'])
             scheduler.load_state_dict(ckpt['scheduler'])
 
-            train_dataset.assign(ckpt['train_dataset'])
-            eval_dataset.assign(ckpt['eval_dataset'])
+            #train_dataset.assign(ckpt['train_dataset'])
+            #eval_dataset.assign(ckpt['eval_dataset'])
 
             if self.config.use_amp:
                 amp.load_state_dict(ckpt['amp'])
@@ -139,14 +139,14 @@ class Trainer(object):
             if not no_cuda:
                 torch.cuda.empty_cache()
 
-            if (step + 1) % self.config.eval_steps == 0:
-                recorder.record(
-                    self._eval_step(rank, eval_dataset, model), scope='eval')
-                recorder.stamp(step)
+            # if (step + 1) % self.config.eval_steps == 0:
+            #     recorder.record(
+            #         self._eval_step(rank, eval_dataset, model), scope='eval')
+            #     recorder.stamp(step)
 
-                if rank == 0:
-                    training_iters.set_postfix_str(
-                        recorder.format(self.config.log_format))
+            #     if rank == 0:
+            #         training_iters.set_postfix_str(
+            #             recorder.format(self.config.log_format))
             # Save training states to checkpoint file.
             if rank == 0 and (step + 1) % self.config.save_steps == 0:
                 ckpt = {'step': step,

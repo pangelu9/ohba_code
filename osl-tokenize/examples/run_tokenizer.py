@@ -50,15 +50,27 @@ if __name__ == '__main__':
 
         #####################################
         # Settings
+        untokenize_dir = './dev/results/raw_data/load_dataset_snr5_cha1_sub1_gro1_mod1'
+        untokenize_data_dir = f'{untokenize_dir}/meg_data-JUL12_.npy'
+        untok_data = np.load(untokenize_data_dir)   
+        print("untok_data shape", untok_data.shape)
+        print("before tokenisation PSD")
+        sampling_rate = 100
+        plot_PSD(untok_data, fs=sampling_rate, n = 4*320000 + 4 )#untok_data.shape[0])
+
         tokenize_dir = args.tokenised_dir #'./dev/results/osl-tokenize/load_dataset_snr5_cha1_sub1_gro1_mod1'
         random_tokens = False
 
         model_dir = f'{tokenize_dir}/token_model'
         #tokenize_data_dir = f'{tokenize_dir}/tokenized_data/meg_data2_tokenized_data.npy'
         tokenize_data_dir = f'{tokenize_dir}/generated_data/generated_data_recursively.npy'
+        
         plot_dir = f"{tokenize_dir}/plots"
         data = np.load(tokenize_data_dir)   
-        print(data.shape)
+        #data = np.squeeze(data, axis=1)
+        print("tok_data shape", data.shape)
+
+        
 
         print(f"Using pre-trained model {model_dir}")
         token_model = tokenize.Model(model_dir)
@@ -67,6 +79,7 @@ if __name__ == '__main__':
 
         print("Sanity check: Reconstruct data")    
         recon_data = token_model.reconstruct_data(tokenize_data_dir)
+        recon_data = np.squeeze(recon_data, axis=1)
         print("recon data shape", recon_data.shape)
         np.save('generated_data_untokenised.npy', recon_data)
         # Sanity check
@@ -79,6 +92,7 @@ if __name__ == '__main__':
         plt.plot(time_points, recon_data)
         ## plot PSD of recon data
         sampling_rate = 100
+        print("data timepoints", recon_data.shape[0])
         plot_PSD(recon_data, fs=sampling_rate, n=recon_data.shape[0])
 
 
