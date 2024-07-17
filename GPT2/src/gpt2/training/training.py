@@ -91,7 +91,7 @@ class Trainer(object):
             if not no_cuda:
                 ckpt = torch.load(from_checkpoint, map_location='cuda')
             else:
-                ckpt = torch.load(from_checkpoint)
+                ckpt = torch.load(from_checkpoint, map_location=torch.device('cpu'))
 
             start_step = ckpt['step']
             recorder = ckpt['recorder']
@@ -139,15 +139,16 @@ class Trainer(object):
             if not no_cuda:
                 torch.cuda.empty_cache()
 
-            # if (step + 1) % self.config.eval_steps == 0:
-            #     recorder.record(
-            #         self._eval_step(rank, eval_dataset, model), scope='eval')
-            #     recorder.stamp(step)
+            if (step + 1) % self.config.eval_steps == 0:
+                print("VAL")
+                recorder.record(
+                    self._eval_step(rank, eval_dataset, model, calculate_acc=True), scope='eval')
+                #recorder.stamp(step)
 
-            #     if rank == 0:
-            #         training_iters.set_postfix_str(
-            #             recorder.format(self.config.log_format))
-            # Save training states to checkpoint file.
+                # if rank == 0:
+                #     training_iters.set_postfix_str(
+                #         recorder.format(self.config.log_format))
+            #Save training states to checkpoint file.
             if rank == 0 and (step + 1) % self.config.save_steps == 0:
                 ckpt = {'step': step,
                         'recorder': recorder,
@@ -208,19 +209,22 @@ class Trainer(object):
         #print("metrics", metrics)
         #print("metrics", metrics.items())
         
-        a = {k: self._to_value(v) for k, v in metrics.items()}
-        print("metrics from train step", a)
+        #a = {k: self._to_value(v) for k, v in metrics.items()}
+        #print("metrics from train step", a)
 
         return {k: self._to_value(v) for k, v in metrics.items()}
             
 
     @torch.no_grad()
-    def _eval_step(self, rank: int, dataset: Dataset, model: nn.Module
+    def _eval_step(self, rank: int, dataset: Dataset, model: nn.Module, calculate_acc = False
                    ) -> Dict[str, float]:
         model.eval()
 
         data = self._fetch_from(dataset, rank, self.config.batch_eval)
-        metrics = self.spec.eval_objective(data, model)
+        metrics = self.spec.eval_objective(data, model, calculate_acc)
+
+        a = {k: self._to_value(v) for k, v in metrics.items()}
+        print("metrics from val step", a)
 
         return {k: self._to_value(v) for k, v in metrics.items()}
 

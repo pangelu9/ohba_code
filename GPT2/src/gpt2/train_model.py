@@ -85,11 +85,26 @@ class GPT2TrainingSpec(TrainingSpec):
 
         return {'loss': loss, 'acc1': tok1_acc, 'acc2': tok2_acc, 'acc3': tok3_acc, 'acc5': tok5_acc}
 
-    def eval_objective(self, data: Dict[str, torch.Tensor], model: nn.Module
+    def eval_objective(self, data: Dict[str, torch.Tensor], model: nn.Module,  calculate_acc=False
                        ) -> Dict[str, torch.Tensor]:
+        tok1_acc = 0
+        tok2_acc = 0
+        tok3_acc = 0
+        tok5_acc = 0
+
         logits, _ = model(data['input'], past=None)
         loss = self.criterion(logits.transpose(1, 2), data['output'])
-        return {'loss': loss}
+        if calculate_acc: # calculate_acc=True only when records the metrics, every save_step
+            tok5_acc = top_k_accuracy(logits, data['output'], k=5)
+            tok3_acc = top_k_accuracy(logits, data['output'], k=3)
+            tok2_acc = top_k_accuracy(logits, data['output'], k=2)
+            tok1_acc = top_k_accuracy(logits, data['output'], k=1)
+            print("Val Accuracy top1", tok1_acc)
+            print("Val Accuracy top2", tok2_acc)
+            print("Val Accuracy top3", tok3_acc)
+            print("Val Accuracy top5", tok5_acc)
+        
+        return {'loss': loss, 'acc1': tok1_acc, 'acc2': tok2_acc, 'acc3': tok3_acc, 'acc5': tok5_acc}
     
 
 
