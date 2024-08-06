@@ -53,3 +53,5 @@ python -m gpt2 visualize --model_path gpt2-model.pth --interactive --val_incl --
 cd ../../osl-tokenize/examples
 python run_tokenizer.py --do_reconstruct --dataset_name load_dataset --load_dataset_dir x --tokenised_dir ./dev/results/osl-tokenize/load_dataset_snr5_cha1_sub1_gro1_mod1
 ```
+
+Plots a timeframe, the PSD and the Wavelet transform of the original and the GPT2 generated signal.
