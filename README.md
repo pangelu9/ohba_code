@@ -31,6 +31,7 @@ python run_tokenizer.py  --do_reconstruct --dataset_name load_dataset --load_dat
 ```
 nohup python -m gpt2 train --train_corpus train_data_SNR3.npy --eval_corpus val_data_SNR3.npy --save_checkpoint_path ckpt-gpt2.pth --save_model_path gpt2-model.pth --batch_train 64 --batch_eval 128 --seq_len 200 --total_steps 50000 --eval_steps 500 --save_steps 2000 --base_lr 1e-4
 ```
+--no_cuda: add argument if no gpu available
 
 ### Visualise results
 ```
