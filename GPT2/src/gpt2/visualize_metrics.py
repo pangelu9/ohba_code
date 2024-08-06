@@ -107,7 +107,6 @@ def _plot_highlight_metrics_graph(train_steps: List[int],
 def visualize_recorded_metrics(args: argparse.Namespace):
     metrics = torch.load(args.model_path, map_location=torch.device('cpu'))['metrics']
     plt.style.use('seaborn')
-    eval_every = 1000
 
     train_losses = metrics['train/loss']
     train_acc1 = metrics['train/acc1']
@@ -123,11 +122,11 @@ def visualize_recorded_metrics(args: argparse.Namespace):
         eval_acc2 = metrics['eval/acc2']
         eval_acc5 = metrics['eval/acc3']
         print(len(eval_acc5))
-        train_steps = list(range(1, len(train_losses) + 1, eval_every))
-        train_losses = train_losses[::eval_every]
-        train_acc1 = train_acc1[::eval_every]
-        train_acc2 = train_acc2[::eval_every]
-        train_acc5 = train_acc5[::eval_every]
+        train_steps = list(range(1, len(train_losses) + 1, args.eval_every))
+        train_losses = train_losses[::args.eval_every]
+        train_acc1 = train_acc1[::args.eval_every]
+        train_acc2 = train_acc2[::args.eval_every]
+        train_acc5 = train_acc5[::args.eval_every]
     else:
         train_steps = list(range(1, len(train_losses) + 1))
         eval_losses = metrics['train/loss']
@@ -184,6 +183,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='show interactive plot window')
     parser.add_argument('--val_incl', action='store_true',
                         help='model includes validation checkpoints')
+    parser.add_argument('--eval_every', default=None, type=int,
+                       help='every how many steps validation metrics were calculated')
 
     parser.set_defaults(func=visualize_recorded_metrics)
 

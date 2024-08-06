@@ -13,7 +13,7 @@ class GPT2TrainingSpec(TrainingSpec):
     def __init__(self, train_corpus: str, eval_corpus: str, vocab_path: str,
                  seq_len: int, layers: int, heads: int, dims: int, rate: int,
                  dropout: float, base_lr: float, wd_rate: float,
-                 total_steps: int, use_grad_ckpt: bool):
+                 total_steps: int, use_grad_ckpt: bool, words: int):
         self.train_corpus = train_corpus
         self.eval_corpus = eval_corpus
         self.vocab_path = vocab_path
@@ -27,11 +27,10 @@ class GPT2TrainingSpec(TrainingSpec):
         self.wd_rate = wd_rate
         self.total_steps = total_steps
         self.use_grad_ckpt = use_grad_ckpt
+        self.words = words
 
     def initialize(self):
-        #self.vocab = Vocab(vocab_path=self.vocab_path)
-        self.vocab = "" #{"pad_idx": 0, "void": 0}
-        #self.vocab["pad_idx"] = 1
+        self.vocab = "" 
         self.criterion = nn.CrossEntropyLoss(#ignore_index=self.vocab.pad_idx,
                                              reduction='mean')
 
@@ -47,7 +46,7 @@ class GPT2TrainingSpec(TrainingSpec):
 
     def construct_model(self) -> nn.Module:
         return Transformer(layers=self.layers, pad_idx=100,
-                           words=51, #len(self.vocab), 
+                           words=self.words, 
                            seq_len=self.seq_len,
                            heads=self.heads, dims=self.dims, rate=self.rate,
                            dropout=self.dropout, bidirectional=False)
@@ -114,7 +113,7 @@ def train_gpt2_model(args: argparse.Namespace):
         vocab_path=args.vocab_path, seq_len=args.seq_len, layers=args.layers,
         heads=args.heads, dims=args.dims, rate=args.rate, dropout=args.dropout,
         base_lr=args.base_lr, wd_rate=args.wd_rate,
-        total_steps=args.total_steps, use_grad_ckpt=args.use_grad_ckpt)
+        total_steps=args.total_steps, use_grad_ckpt=args.use_grad_ckpt, words=args.num_words)
     config = TrainConfig(
         batch_train=args.batch_train, batch_eval=args.batch_eval,
         total_steps=args.total_steps, eval_steps=args.eval_steps,
@@ -156,7 +155,7 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                        help='training corpus file path')
     group.add_argument('--eval_corpus', required=True,
                        help='evaluation corpus file path')
-    group.add_argument('--vocab_path', required=True,
+    group.add_argument('--vocab_path', default="", required=False,
                        help='vocabulary file path')
 
     group = parser.add_argument_group('Model configurations')
@@ -172,6 +171,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                        help='increase rate of dimensionality in bottleneck')
     group.add_argument('--dropout', default=0.1, type=float,
                        help='probability that each element is dropped')
+    group.add_argument('--num_words', default=51, type=float,
+                       help='number of words in the vocabulary')
 
     group = parser.add_argument_group('Training and evaluation')
     group.add_argument('--batch_train', default=64, type=int,
@@ -212,7 +213,6 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     
     parser.set_defaults(func=train_gpt2_model)
     
-    #parser.add_argument("--no_cuda", action="store_true", help="Disables CUDA training")
 
 
     

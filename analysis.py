@@ -75,7 +75,7 @@ def plot_PSD(x, fs, n, nperseg=4*256, save_name=""):#, noverlap=128):
     plt.title('Power Spectral Density (PSD)')
     plt.xlabel('Frequency (Hz)')
     plt.ylabel('PSD (V^2/Hz)')
-    plt.savefig('PSD_{}.eps'.format(save_name), format='eps')
+    plt.savefig('PSD{}.png'.format(save_name), format='png')
     plt.show()
 
 # Function to align two arrays and find the optimal position of the smaller array

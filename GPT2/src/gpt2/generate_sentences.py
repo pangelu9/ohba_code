@@ -121,11 +121,11 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     group = parser.add_argument_group('Model configurations')
     group.add_argument('--seq_len', default=64, type=int,
                        help='maximum sequence length')
-    group.add_argument('--layers', default=6, type=int,
+    group.add_argument('--layers', default=4, type=int,
                        help='number of transformer layers')
-    group.add_argument('--heads', default=8, type=int,
+    group.add_argument('--heads', default=4, type=int,
                        help='number of multi-heads in attention layer')
-    group.add_argument('--dims', default=1024, type=int,
+    group.add_argument('--dims', default=400, type=int,
                        help='dimension of representation in each layer')
     group.add_argument('--rate', default=4, type=int,
                        help='increase rate of dimensionality in bottleneck')
