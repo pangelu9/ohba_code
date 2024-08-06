@@ -36,7 +36,9 @@ nohup python -m gpt2 train --train_corpus train_data_SNR3.npy --eval_corpus val_
 ```
 python -m gpt2 visualize --model_path gpt2-model.pth --interactive --val_incl --eval_every 500
 ```
+
 --val_incl: includes the validation curves
+
 --eval_every: every how many steps validation was performed during training
 
 
