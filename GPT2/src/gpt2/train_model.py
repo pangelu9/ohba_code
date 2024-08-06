@@ -47,7 +47,7 @@ class GPT2TrainingSpec(TrainingSpec):
 
     def construct_model(self) -> nn.Module:
         return Transformer(layers=self.layers, pad_idx=100,
-                           words=45, #len(self.vocab), 
+                           words=51, #len(self.vocab), 
                            seq_len=self.seq_len,
                            heads=self.heads, dims=self.dims, rate=self.rate,
                            dropout=self.dropout, bidirectional=False)
@@ -162,11 +162,11 @@ def add_subparser(subparsers: argparse._SubParsersAction):
     group = parser.add_argument_group('Model configurations')
     group.add_argument('--seq_len', default=64, type=int,
                        help='maximum sequence length')
-    group.add_argument('--layers', default=6, type=int,
+    group.add_argument('--layers', default=4, type=int,
                        help='number of transformer layers')
-    group.add_argument('--heads', default=8, type=int,
+    group.add_argument('--heads', default=4, type=int,
                        help='number of multi-heads in attention layer')
-    group.add_argument('--dims', default=1024, type=int,
+    group.add_argument('--dims', default=400, type=int,
                        help='dimension of representation in each layer')
     group.add_argument('--rate', default=4, type=int,
                        help='increase rate of dimensionality in bottleneck')

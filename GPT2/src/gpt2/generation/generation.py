@@ -28,8 +28,10 @@ class Generator(object):
         #print("Generate tokens")
         tokens = [int(item) for item in input_tokens.split()]
         #print("input", len(tokens), tokens)
-        
+        #print("tokens[-100:-1]", tokens[-100:])
         current, past = tokens, None
+        #current, past = tokens[-1], tokens[0:-1]
+        count = 0
         while len(tokens) < self.config.seq_len:
             # Predict the next word token from the given context.
             probs, past = self._predict_probs(current, past)
@@ -38,6 +40,10 @@ class Generator(object):
             # Change the context to the predicted word.
             tokens.append(next_word)
             current = [next_word]
+            #past = None
+            #print("past", past)
+            #print("current", current)
+            #count = count + 1
 
         return tokens #self.spec.decode_tokens(words)
 
@@ -59,6 +65,12 @@ class Generator(object):
         return logits[-1, :].softmax(-1), past
 
     def _sample_from_top_p(self, probs: torch.Tensor) -> int:
+        ############################## Explanation ##############################
+        # 1. Calculate logits 
+        # 2. Apply softmax -> probabilities 
+        # 3. Use probs.multinomial to sample a token based on these probabilities.
+        #########################################################################
+
         probs, indices = probs.sort(descending=True)
 
         mask = probs.cumsum(-1) > self.config.nucleus_prob
@@ -66,4 +78,6 @@ class Generator(object):
         probs.masked_fill_(mask, 0)
 
         # Sample from filtered distribution.
-        return indices[probs.multinomial(1)[0]].item()
+        #print("probs", probs)
+        #print("indices", indices)
+        return indices[probs.multinomial(1)[0]].item()  

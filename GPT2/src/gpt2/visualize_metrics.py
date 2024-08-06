@@ -106,41 +106,61 @@ def _plot_highlight_metrics_graph(train_steps: List[int],
 
 def visualize_recorded_metrics(args: argparse.Namespace):
     metrics = torch.load(args.model_path, map_location=torch.device('cpu'))['metrics']
-    
-    train_losses = metrics['train/loss']
-    eval_losses = metrics['eval/loss']
-    train_acc2 = metrics['train/acc2']
-    train_acc3 = metrics['train/acc3']
-    train_acc5 = metrics['train/acc5']
-    eval_acc2 = metrics['eval/acc2']
-    eval_acc3 = metrics['eval/acc3']
-    eval_acc5 = metrics['eval/acc5']
-    train_steps = list(range(1, len(train_losses) + 1))
-    #eval_losses = metrics['train/loss']
-    eval_steps = list(range(1, len(eval_losses) + 1))    
-    #eval_steps, eval_losses = zip(*metrics['eval/loss'])
+    plt.style.use('seaborn')
+    eval_every = 1000
 
+    train_losses = metrics['train/loss']
+    train_acc1 = metrics['train/acc1']
+    train_acc2 = metrics['train/acc2']
+    train_acc5 = metrics['train/acc3']
+    print(len(train_losses))
+    
+    
+
+    if args.val_incl:
+        eval_losses = metrics['eval/loss']
+        eval_acc1 = metrics['eval/acc1']
+        eval_acc2 = metrics['eval/acc2']
+        eval_acc5 = metrics['eval/acc3']
+        print(len(eval_acc5))
+        train_steps = list(range(1, len(train_losses) + 1, eval_every))
+        train_losses = train_losses[::eval_every]
+        train_acc1 = train_acc1[::eval_every]
+        train_acc2 = train_acc2[::eval_every]
+        train_acc5 = train_acc5[::eval_every]
+    else:
+        train_steps = list(range(1, len(train_losses) + 1))
+        eval_losses = metrics['train/loss']
+        eval_acc1 = metrics['train/acc1']
+        eval_acc2 = metrics['train/acc2']
+        eval_acc5 = metrics['train/acc3']
+
+    eval_steps = train_steps #list(range(1, len(eval_losses) + 1))    
+    #print(eval_steps)
+    
     plt.figure(figsize=(10, 7))
 
     plt.subplot(221)
     _plot_entire_metrics_graph(train_steps, train_losses,
                                eval_steps, eval_losses, title = 'Cross-Entropy Loss', ylabel='Loss')
 
+
     plt.subplot(222)
+    _plot_entire_metrics_graph(train_steps, train_acc1,
+                               eval_steps, eval_acc1, title = 'Accuracy top1', ylabel='Accuracy')
+    #_plot_stretched_metrics_graph(train_steps, train_losses,
+    #                              eval_steps, eval_losses)
+
+    plt.subplot(223)
     _plot_entire_metrics_graph(train_steps, train_acc2,
                                eval_steps, eval_acc2, title = 'Accuracy top2', ylabel='Accuracy')
     #_plot_log_scale_metrics_graph(train_steps, train_losses,
     #                              eval_steps, eval_losses)
 
-    plt.subplot(223)
-    _plot_entire_metrics_graph(train_steps, train_acc3,
-                               eval_steps, eval_acc3, title = 'Accuracy top3', ylabel='Accuracy')
-    #_plot_stretched_metrics_graph(train_steps, train_losses,
-    #                              eval_steps, eval_losses)
 
     plt.subplot(224)
     _plot_entire_metrics_graph(train_steps, train_acc5,
-                               eval_steps, eval_acc5, title = 'Accuracy top5', ylabel='Accuracy')
+                               eval_steps, eval_acc5, title = 'Accuracy top3', ylabel='Accuracy')
     #_plot_highlight_metrics_graph(train_steps, train_losses,
     #                              eval_steps, eval_losses)
 
@@ -149,6 +169,7 @@ def visualize_recorded_metrics(args: argparse.Namespace):
         plt.show()
     else:
         plt.savefig(args.figure)
+    plt.savefig('GPT2_training.eps', format='eps')
 
 
 def add_subparser(subparsers: argparse._SubParsersAction):
@@ -161,6 +182,8 @@ def add_subparser(subparsers: argparse._SubParsersAction):
                         help='trained GPT-2 model file path')
     parser.add_argument('--interactive', action='store_true',
                         help='show interactive plot window')
+    parser.add_argument('--val_incl', action='store_true',
+                        help='model includes validation checkpoints')
 
     parser.set_defaults(func=visualize_recorded_metrics)
 

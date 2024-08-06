@@ -10,7 +10,8 @@ from plot_tokenizer import plot_tokenizer
 sys.path.append('../')
 from osl_tokenize.models import conv as tokenize
 sys.path.append('../../')
-from analysis import plot_PSD
+from analysis import plot_PSD, plot_wavelet
+
 
 import matplotlib.pyplot as plt
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
 
     if args.do_train:
         print("Train tokeniser")
+        print("args.load_dataset_dir", args.load_dataset_dir)
         tokenize_dir, raw_data_dir = run_tokenizer(dataset_name, SIM_SNR=SIM_SNR, USING_BMRC=USING_BMRC, VOCAB_SIZE=VOCAB_SIZE, load_dataset_dir=args.load_dataset_dir)
 
         osl_tokenize_dir = f'{dev_dir}/projects/osl-tokenize'
@@ -51,19 +53,35 @@ if __name__ == '__main__':
         #####################################
         # Settings
         untokenize_dir = './dev/results/raw_data/load_dataset_snr5_cha1_sub1_gro1_mod1'
-        untokenize_data_dir = f'{untokenize_dir}/meg_data-JUL12_.npy'
+        untokenize_data_dir = f'{untokenize_dir}/meg_data.npy'
         untok_data = np.load(untokenize_data_dir)   
         print("untok_data shape", untok_data.shape)
         print("before tokenisation PSD")
         sampling_rate = 100
-        plot_PSD(untok_data, fs=sampling_rate, n = 4*320000 + 4 )#untok_data.shape[0])
+        plt.style.use('seaborn')
 
-        tokenize_dir = args.tokenised_dir #'./dev/results/osl-tokenize/load_dataset_snr5_cha1_sub1_gro1_mod1'
+        ######### Plot signal: original  #########
+        time_points = np.arange(untok_data.shape[0])
+        plt.plot(time_points[1000:1500], untok_data[1000:1500])
+        plt.title('Original signal')
+        plt.xlabel('Timepoints')
+        plt.ylabel('Amplitude')
+        plt.savefig('Original.eps', format='eps')
+        plt.show()
+
+        ######### plot PSD: original #########       
+        plot_PSD(untok_data, fs=sampling_rate, n = untok_data.shape[0], save_name="original")#untok_data.shape[0]) 
+
+        ######### Plot wavelet: original  #########
+        plot_wavelet(untok_data, sampling_frequency=sampling_rate, save_name="original")
+
+        tokenize_dir = args.tokenised_dir  #'./dev/results/osl-tokenize/load_dataset_snr5_cha1_sub1_gro1_mod1'
         random_tokens = False
 
         model_dir = f'{tokenize_dir}/token_model'
         #tokenize_data_dir = f'{tokenize_dir}/tokenized_data/meg_data2_tokenized_data.npy'
-        tokenize_data_dir = f'{tokenize_dir}/generated_data/generated_data_recursively.npy'
+        tokenize_data_dir = f'{tokenize_dir}/generated_data/generated_data_recursively_100_1.npy'
+        #tokenize_data_dir = f'{tokenize_dir}/generated_data/meg_data_tokenized_data1.npy'
         
         plot_dir = f"{tokenize_dir}/plots"
         data = np.load(tokenize_data_dir)   
@@ -86,14 +104,23 @@ if __name__ == '__main__':
         #Load initial data
         #original_data = np.load(args.load_dataset_dir)
         #print("Original data shape", original_data.shape)
-       
 
+
+        ######### Plot signal: generated  #########
         time_points = np.arange(recon_data.shape[0])
-        plt.plot(time_points, recon_data)
-        ## plot PSD of recon data
-        sampling_rate = 100
-        print("data timepoints", recon_data.shape[0])
-        plot_PSD(recon_data, fs=sampling_rate, n=recon_data.shape[0])
+        plt.plot(time_points[1000:1500], recon_data[1000:1500])
+        plt.title('GPT2 generated signal')
+        plt.xlabel('Timepoints')
+        plt.ylabel('Amplitude')
+        plt.savefig('GPT2_generated.eps', format='eps')
+        plt.show()
+
+        ######### plot PSD: generated #########       
+        #print("data timepoints", recon_data.shape[0])
+        plot_PSD(recon_data, fs=sampling_rate, n = recon_data.shape[0], save_name="GPT2")
+
+        ######### Plot wavelet: generated  #########
+        plot_wavelet(recon_data, sampling_frequency=sampling_rate, save_name="GPT2")
 
 
 

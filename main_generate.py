@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 
 from generate_data import generate_hmm_signal, validate
-from analysis import plot_PSD
+from analysis import plot_PSD, add_noise
 from example import runningHMM
 
 #sys.path.append('../')
@@ -40,7 +40,7 @@ args = parser.parse_args()
 if __name__ == "__main__":
 
     # Define parameters
-    n_samples = 4*320000 + args.num_tde-1 # Number of time points + no. of tde components.
+    n_samples = 8*320000 + args.num_tde-1 # Number of time points + no. of tde components.
     sampling_rate = 100  # Hz
     n_components = 1  # Number of sine wave components for each state.
     #noise_std = 0.2  # Standard deviation of the white noise
@@ -50,6 +50,7 @@ if __name__ == "__main__":
     if args.type == "hmm":
 
         t, signal, states, sim_stc, sim_covs, sim_tp, ts = generate_hmm_signal(args, n_samples, n_states, sampling_rate, n_components, plotting_fig = args.plotting_fig, freq_given = frequencies)#, ampl_given=amplitudes)
+        signal = add_noise(signal)
 
         loc_dir = "./osl-tokenize/examples/dev/results/raw_data/load_dataset_snr5_cha1_sub1_gro1_mod1/meg_data.npy"
         print("Saving generated data at: ", loc_dir)

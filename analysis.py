@@ -3,8 +3,51 @@ import matplotlib.pyplot as plt
 from scipy.signal import welch
 from scipy.optimize import linear_sum_assignment
 
+from osl_dynamics.analysis.spectral import wavelet
 
-def plot_PSD(signal, fs, n):
+
+def add_noise(signal, SNR=3):
+
+    absolute_signal = np.abs(signal)
+    average_amplitude = np.mean(absolute_signal)
+
+    sigma = (average_amplitude / np.sqrt(2)) / SNR
+    noise = np.random.normal(0, sigma, signal.shape)
+    noisy_signal = signal + noise
+
+    return noisy_signal
+
+def plot_wavelet(data, sampling_frequency, save_name):
+    t, f, wt = wavelet(data, sampling_frequency)
+
+    #print(t.shape, f.shape, wt.shape)
+    #print(f)
+    fig, ax = plt.subplots(figsize=(15, 8))
+    cax = ax.imshow(wt[:,0:2000], aspect='auto', cmap='viridis') 
+    fig.colorbar(cax, ax = ax, label='Value')  # Show color scale
+    ax.set_title('Wavelet')
+    ax.set_xlabel('Timepoints')
+    ax.set_ylabel('Frequency (Hz)')
+       
+    data = wt[:,0:2000]
+    specific_values = range(100, 2000, 100)
+    x_ticks_indices = range(100, 2000, 100)#[np.argmin(np.abs(t - val)) for val in specific_values]
+    print(x_ticks_indices)
+    
+    ax.set_xticks(x_ticks_indices)#, fontsize=8)  
+
+    #ax.set_xticks(np.linspace(0, data.shape[1], 10), np.round(np.linspace(0, data.shape[1], 10), 2))
+    
+    specific_values = [10, 20, 30, 40]
+    y_ticks_indices = [np.argmin(np.abs(f - val)) for val in specific_values]
+    ax.set_yticks(y_ticks_indices, np.round(f[y_ticks_indices], 2))#, fontsize=8)  
+
+    ax.grid(False)  # Disable gridlines from seaborn style
+    ax.set_facecolor('none') 
+    plt.savefig('Wavelet_{}.eps'.format(save_name), format='eps')
+    plt.show()    
+
+def plot_PSD1(signal, fs, n):
     fft_signal = np.fft.fft(signal)
     fft_freqs = np.fft.fftfreq(n, 1/fs)
 
@@ -24,6 +67,16 @@ def plot_PSD(signal, fs, n):
     plt.grid()
     plt.show()
 
+def plot_PSD(x, fs, n, nperseg=4*256, save_name=""):#, noverlap=128):
+    
+    f, Pxx_den = welch(x, fs, nperseg=nperseg)#, noverlap=noverlap)
+    plt.semilogy(f, Pxx_den)
+    #plt.ylim([0.5e-3, 1])
+    plt.title('Power Spectral Density (PSD)')
+    plt.xlabel('Frequency (Hz)')
+    plt.ylabel('PSD (V^2/Hz)')
+    plt.savefig('PSD_{}.eps'.format(save_name), format='eps')
+    plt.show()
 
 # Function to align two arrays and find the optimal position of the smaller array
 def align_arrays_with_position(array1, array2):

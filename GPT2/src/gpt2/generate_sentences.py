@@ -23,7 +23,7 @@ class GPT2GenerationSpec(GenerationSpec):
 
     def construct_model(self) -> nn.Module:
         return Transformer(layers=self.layers, pad_idx=100,#self.vocab.pad_idx,
-                           words=45, #len(self.vocab), 
+                           words=51, #len(self.vocab), 
                            seq_len=self.seq_len,
                            heads=self.heads, dims=self.dims, rate=self.rate,
                            dropout=0, bidirectional=False)
@@ -50,31 +50,50 @@ def generate_sentence_with_gpt2_model(args: argparse.Namespace):
 
     generator = Generator(spec, config)
     generator.initialize(from_model=args.model_path)
-    no_points = int(args.seq_len/2)
+    no_points = 100 #2 #int(args.seq_len/2)
+    no_generated = 100
     print("Take {} random timepoints from data in file: ".format(no_points), args.data_path)
     data = np.load(args.data_path)
     length = len(data)
     count = 0
     data_generated = np.zeros((no_points + args.num_generated_samples * no_points))
+    data_generated = np.zeros((no_points + args.num_generated_samples * no_generated))
     print("len data gen", len(data_generated))
     # take x random points
     sample_int = random.randint(0, length-2000)
     points = data[sample_int:sample_int+no_points]
     data_generated[0:no_points] = points
+    input = ""
+    for k in range(no_points):
+            input = input + str(points[k]) + " "
 
     while count<args.num_generated_samples:
         count = count + 1
-        input = ""
-        for k in range(no_points):
-             input = input + str(points[k]) + " "
+        
+        #print(input)
              
         print(count)
+        #print(input)
         tokens = generator.generate(input)
-        #print(tokens)
-        #print("length of generated seq", len(tokens))
-        #print("generated seq", tokens)
-        data_generated[count*no_points:count*no_points+no_points] = tokens[no_points:]
-        points = tokens[no_points:] # recursively take the generated points (last no_points in number in tokens array)
+        #print(len(tokens))
+        #print("added no.", no_points+(count-1)*no_generated, no_points+count*no_generated)
+        #print("added", -no_points,-no_points+no_generated)
+        if -no_points+no_generated<0:
+            points = tokens[-no_points:-no_points+no_generated]
+            data_generated[no_points+(count-1)*no_generated:no_points+count*no_generated] = tokens[-no_points:-no_points+no_generated]
+        else:
+            points = tokens[-no_points:]
+            data_generated[no_points+(count-1)*no_generated:no_points+count*no_generated] = tokens[-no_points:]
+
+        input = ""
+        #points = tokens[-no_generated:]
+        #points = tokens[-args.seq_len + no_generated : -no_points+no_generated]
+        
+        #print(len(points)) ## always predict no_generated symbols based on the no_points
+        for k in range(len(points)):
+            input = input + str(points[k]) + " "
+        
+        #print("add ", points)
         #                           # and use them as input for the next generation.
         #print("exrta generated ", tokens[no_points:])
         #print("all data", data_generated)

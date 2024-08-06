@@ -56,7 +56,7 @@ def generate_hmm_signal(args, n_samples, n_states, sampling_rate, n_components,
 
     signal = np.zeros(n_samples)
     for state in range(n_states):
-        noise_std = np.random.uniform(noise_std_range[0], noise_std_range[1])
+        noise_std = 0 #np.random.uniform(noise_std_range[0], noise_std_range[1])
         freq_given_state = freq_given[state] # take the freq. that corresponds to this state, freq_given is of size [n_states]
         #ampl_given_state = np.random.uniform(0, 1) #ampl_given[state]
         _, signal_with_noise, _ = generate_signal_with_noise(n_samples, sampling_rate, n_components, noise_std=noise_std, freq_given=freq_given_state)#, ampl_given=ampl_given_state)
